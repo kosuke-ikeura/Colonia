@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>D3.js_demo</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <!--    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.1.1/d3.js"></script>-->
+</head>
+
+<body>
+
+
+    <script>
+        var colorArray = ["#104f6c", "#6f1f4d", "#f45968", "#8c1f30", "#2eb1c6", "#cc3f64", "#fbcf86", "#cbc9c9", "#728497", "#fbe9ba", "#a6abae", "#794010", "#d6e2e1", "#1eb8b0", "#a5ba5f", ];
+
+        for (var i = 0; i < 4; i++) {
+            if (i == 0) {
+                var color = Math.floor(Math.random() * 15);
+                $(function() {
+                    $('#im1').css('border-color', colorArray[color]);
+                    console.log(colorArray[color])
+                });
+                colorArray.splice(i, 1);
+                console.log(colorArray)
+            } else if (i == 1) {
+                var color1 = Math.floor(Math.random() * 14);
+                $(function() {
+                    $('#im2').css('border-color', colorArray[color1]);
+                    console.log(colorArray[color])
+                });
+                colorArray.splice(i, 1);
+                console.log(colorArray)
+            } else if (i == 2) {
+                var color2 = Math.floor(Math.random() * 13);
+                $(function() {
+                    $('#im3').css('border-color', colorArray[color2]);
+                    console.log(colorArray[color])
+                });
+                colorArray.splice(i, 1);
+                console.log(colorArray)
+            } else if (i == 3) {
+                var color3 = Math.floor(Math.random() * 12);
+                $(function() {
+                    $('#im4').css('border-color', colorArray[color3]);
+                    console.log(colorArray[color])
+                });
+                colorArray.splice(i, 1);
+                console.log(colorArray)
+            }
+        }
+    </script>
+
+    <svg class="d3" width="1000" height="1000" style="background-color:#231f20">
+
+        <!--    width="1000" height="1000"-->
+    </svg> <!-- ちょっと広くして色つけた-->
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+
+    <script>
+        var svg = d3.select("svg"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
+
+        var dcx = (window.innerWidth / 2);
+        var dcy = (window.innerHeight);
+        //        var color = d3.scaleOrdinal()
+        //            .range(["#e22a38", "#cb2a5a", "#b4297c", "#9d299e", "#8729bf", "#6e28e2"]);
+        var color = d3.scaleLinear()
+            .domain([0, 59])
+            //        .range(["#8a2cc9","#ff4b4b","#ffea76"])
+            //            .range(["#d1d1d1", "#04d5a0"]);
+            .range(["#ffffff", "#000000"]);
+
+        function textColor(num) {
+            var tcolor = ""
+            if (num < 30) {
+                tcolor = "black"
+            } else if (num > 29) {
+                tcolor = "#dad9d9"
+            }
+            return tcolor
+        }
+
+
+
+        var txColor = d3.scaleLinear()
+            .domain([0, 59])
+            .range(["d299c2", "fef9d7"]);
+
+        var simulation = d3.forceSimulation()
+            .velocityDecay(0.4) //摩擦
+            .force('charge', d3.forceManyBody()) //詳細設定は後で
+            .force('link', d3.forceLink().id(function(d) {
+                return d.word;
+            })) //詳細設定は後で
+
+            .force('colllision', d3.forceCollide(50)) //nodeの衝突半径：Nodeの最大値と同じ
+            .force('positioningX', d3.forceX()) //詳細設定は後で
+            .force('positioningY', d3.forceY()) //詳細設定は後で
+            .force('center', d3.forceCenter(dcx, dcy / 2)); //重力の中心
+
+
+
+        //"svg"にZoomイベントを設定
+
+        //クリックしたらズーム
+        var min_zoom = 0.1;
+        var max_zoom = 7;
+        var zoom = d3.zoom()
+            .scaleExtent([min_zoom, max_zoom])
+            .on('zoom', SVGzoomed);
+
+        svg.call(zoom);
+
+        //"svg"上に"g"をappendしてdragイベントを設定
+        var g = svg.append("g")
+            .call(d3.drag()
+                .on('drag', SVGdragged))
+
+        function SVGzoomed() {
+            g.attr("transform", d3.event.transform);
+        }
+
+        function SVGdragged(d) {
+            d3.select(this).attr('cx', d.x = d3.event.x).attr('cy', d.y = d3.event.y);
+        };
+
+        //jsonファイル読み込みin D3--------------------------------------------------------------------------------------
+        d3.json("colonia22.json", function(error, graph) {
+            if (error) throw error;
+
+            var link = g.append("g") //svg⇒gに
+                .attr("class", "links")
+                .selectAll("line")
+                .data(graph.links)
+                .enter().append("line")
+                .attr("stroke", "#666666"); //輪郭線の色指定追加
+            //                .attr("stroke-width", function(d) {
+            //                    return Math.sqrt(d.value);
+            //                });
+
+            // nodeの定義
+            var node = g.append('g')
+                .attr('class', 'nodes')
+                .selectAll('g')
+                .data(graph.words)
+                .enter()
+                .append('g')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+
+
+            // node circleの定義
+            node.append("use")
+                .attr("xlink:href", function(d) {
+                    return "#" + nodeTypeID(d.group)
+                }) //図形判定
+                .attr('fill', function(d) {
+                    return color(d.id);
+                })
+                .on('dblclick', function() {
+                    d3.select(this).attr('stroke-width', '2.4px');
+                    d3.select(this).attr('stroke', '#15EB73'); //色おおおおおおおおおおおおおおおおおおおおおおおお
+
+
+                })
+
+
+            //node textの定義
+            node.append('text')
+                .attr('text-anchor', 'middle')
+                .attr('fill', function(d) {
+                    if (d.id < 30) {
+                        return "black"
+                    } else if (d.id > 29) {
+                        return "#dad9d9"
+                    }
+                })
+                .style('pointer-events', 'none')
+                .attr('font-size', function(d) {
+                    return '10px';
+                })
+                .text(function(d) {
+                    return d.word;
+                });
+
+
+
+            //図形判定
+            function nodeTypeID(d) {
+                var nodetype
+                var arrRect = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0]
+
+                if (arrRect.indexOf(d) >= 0) {
+                    //Rect
+                    return "rect"
+                } else {
+                    //Circle
+                    return "circle"
+                }
+            }
+
+            var Defs = svg.append("defs");
+
+
+            //Rect
+            var figRect = Defs.append('rect')
+                .attr("id", "rect")
+                .attr('width', function(d) {
+                    return 75;
+                })
+                .attr('height', 30)
+                //                .attr('border', 5)
+                .attr('rx', 7) //角を丸める
+                .attr('ry', 7) //角を丸める
+                .attr('x', -(75 / 2)) //circleと中心を合わせる
+                .attr('y', -(40 / 2)); //circleと中心を合わせる
+
+
+            simulation
+                .nodes(graph.words)
+                .on("tick", ticked);
+
+            simulation.force("link")
+                .links(graph.links);
+
+            simulation.force('charge')
+                .strength(function(d) {
+                    return -1500
+                }) //node間の力
+
+            simulation.force('positioningX') //X方向の中心に向けた引力
+                .strength(0.09)
+
+            simulation.force('positioningY') //Y方向の中心に向けた引力
+                .strength(0.2)
+
+            function ticked() {
+                link
+                    .attr("x1", function(d) {
+                        return d.source.x;
+                    })
+                    .attr("y1", function(d) {
+                        return d.source.y;
+                    })
+                    .attr("x2", function(d) {
+                        return d.target.x;
+                    })
+                    .attr("y2", function(d) {
+                        return d.target.y;
+                    });
+
+                node
+                    .attr("cx", function(d) {
+                        return d.x;
+                    })
+                    .attr("cy", function(d) {
+                        return d.y;
+                    })
+                    .attr('transform', function(d) {
+                        return 'translate(' + d.x + ',' + d.y + ')'
+                    }); //nodesの要素が連動して動くように設定
+            }
+
+
+
+            //json読み込みcoloniaという変数にブチ込む
+            var colonia = [];
+            var attributions = [];
+            var articles = [];
+            var randomArticles = []
+            var articleArray = []
+            var nodex = ""
+            var nodey = ""
+            $.getJSON("colonia22.json", function(json) {
+                colonia = json
+                attributions = colonia["attributions"];
+                articles = colonia["articles"];
+                console.log(colonia)
+
+            });
+            //ダブルクリック判定_____________________________________________________________________________QQQ
+            node.on("dblclick.zoom", function(d) {
+                //nodeの色取得
+                //                var nodeColor =  ;
+                console.log("DBL!!")
+                //                console.log(nodeColor)
+
+                d3.event.stopPropagation();
+                var dcx = (window.innerWidth / 2);
+                var dcy = (window.innerHeight);
+                //                console.log(dcx, dcy);
+                //                console.log(-d.x, -d.y);
+                svg.transition()
+                    .duration(750)
+                    .call(zoom.transform, d3.zoomIdentity
+                        .translate(dcx, dcy / 7) //一旦中央に
+                        .scale(3) //とりあえず4倍でZoomIn
+                        .translate(-d.x, -d.y));;
+                nodex = d.x
+                nodey = d.y
+
+
+                //ダブルクリックしたnodeの単語に関する記事を抽出___________________________________AAA
+
+                for (var i = 0; i < attributions.length; i++) {
+                    if (d.id == attributions[i]["word_id"]) {
+                        var articleId = attributions[i]["article_id"]
+                        articleArray.push(articles[articleId])
+                    }
+                }
+                console.log(articleArray)
+
+
+                function random(array, num) {
+                    var a = array;
+                    var t = [];
+                    var r = [];
+                    var l = a.length;
+                    var n = num < l ? num : l;
+                    while (n-- > 0) {
+                        var i = Math.random() * l | 0;
+                        r[n] = t[i] || a[i];
+                        --l;
+                        t[i] = t[l] || a[l];
+                    }
+                    return r;
+                }
+
+                makeArticle();
+
+                function makeArticle() {
+                    randomArticles = random(articleArray, 4)
+                    console.log(randomArticles);
+                    //記事クリック処理＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿BBB
+
+                    $('#title1').click(function() {
+                        console.log(randomArticles[0]["link"])
+                        window.open(randomArticles[0]["link"], '_blank');
+                    })
+                    $('#title2').click(function() {
+                        console.log(2)
+                        window.open(randomArticles[1]["link"], '_blank');
+                    })
+                    $('#title3').click(function() {
+                        window.open(randomArticles[2]["link"], '_blank');
+                    })
+                    $('#title4').click(function() {
+                        window.open(randomArticles[3]["link"], '_blank');
+                    })
+                    $('#im1').click(function() {
+
+                        window.open(randomArticles[0]["link"], '_blank');
+                    })
+                    $('#im2').click(function() {
+                        console.log("画像！")
+                        window.open(randomArticles[1]["link"], '_blank');
+                    })
+                    $('#im3').click(function() {
+                        window.open(randomArticles[2]["link"], '_blank');
+                    })
+                    $('#im4').click(function() {
+                        window.open(randomArticles[3]["link"], '_blank');
+                    })
+
+                    //記事クリック処理＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿BBB
+                    console.log(randomArticles[0]["link"])
+                    //タイトル指定
+                    if (randomArticles.length == 4) {
+                        $("#title1").text(randomArticles[0]["title"]);
+                        $("#title2").text(randomArticles[1]["title"]);
+                        $("#title3").text(randomArticles[2]["title"]);
+                        $("#title4").text(randomArticles[3]["title"]);
+                    } else if (randomArticles.length == 3) {
+                        $("#title1").text(randomArticles[0]["title"]);
+                        $("#title2").text(randomArticles[1]["title"]);
+                        $("#title3").text(randomArticles[2]["title"]);
+                        $("#title4").css("display", "none");
+                    } else if (randomArticles.length == 2) {
+                        $("#title1").text(randomArticles[0]["title"]);
+                        $("#title2").text(randomArticles[1]["title"]);
+                        $("#title3").css("display", "none");
+                        $("#title4").css("display", "none");
+                    } else if (randomArticles.length == 1) {
+                        $("#title1").text(randomArticles[0]["title"]);
+                        $("#title2").css("display", "none");
+                        $("#title3").css("display", "none");
+                        $("#title4").css("display", "none");
+                    }
+                    //time指定
+                    if (randomArticles.length == 4) {
+                        $("#tm1").text(randomArticles[0]["time"]);
+                        $("#tm2").text(randomArticles[1]["time"]);
+                        $("#tm3").text(randomArticles[2]["time"]);
+                        $("#tm4").text(randomArticles[3]["time"]);
+                    } else if (randomArticles.length == 3) {
+                        $("#tm1").text(randomArticles[0]["time"]);
+                        $("#tm2").text(randomArticles[1]["time"]);
+                        $("#tm3").text(randomArticles[2]["time"]);
+                        $("#tm4").css("display", "none");
+                    } else if (randomArticles.length == 2) {
+                        $("#tm1").text(randomArticles[0]["time"]);
+                        $("#tm2").text(randomArticles[1]["time"]);
+                        $("#tm3").css("display", "none");
+                        $("#tm4").css("display", "none");
+                    } else if (randomArticles.length == 1) {
+                        $("#tm1").text(randomArticles[0]["time"]);
+                        $("#tm2").css("display", "none");
+                        $("#tm3").css("display", "none");
+                        $("#tm4").css("display", "none");
+                    }
+                    //サムネ指定
+                    if (randomArticles.length == 4) {
+                        $("#im1").attr("src", randomArticles[0]["image"]);
+                        $("#im2").attr("src", randomArticles[1]["image"]);
+                        $("#im3").attr("src", randomArticles[2]["image"]);
+                        $("#im4").attr("src", randomArticles[3]["image"]);
+                    } else if (randomArticles.length == 3) {
+                        $("#im1").attr("src", randomArticles[0]["image"]);
+                        $("#im2").attr("src", randomArticles[1]["image"]);
+                        $("#im3").attr("src", randomArticles[2]["image"]);
+                        $("#im4").css("display", "none");
+                    } else if (randomArticles.length == 2) {
+                        $("#im1").attr("src", randomArticles[0]["image"]);
+                        $("#im2").attr("src", randomArticles[1]["image"]);
+                        $("#im3").css("display", "none");
+                        $("#im4").css("display", "none");
+                    } else if (randomArticles.length == 1) {
+                        $("#im1").attr("src", randomArticles[0]["image"]);
+                        $("#im2").css("display", "none");
+                        $("#im3").css("display", "none");
+                        $("#im4").css("display", "none");
+                    }
+                }
+                //ダブルクリックしたnodeの単語に関する記事を抽出___________________________________AAA
+
+
+                //<list>と<background>を表示
+                $(function() {
+                    $(".list").css('display', "block");
+                    setTimeout(function() {
+                        $(".list").css('opacity', '1');
+                        $(".list").css('transform', 'translate(-50%, 0)');
+                    }, 10);
+
+                    $('.list').css('background-color', color(d.id));
+                    $('.time').css('color', textColor(d.id));
+                    $('.title').css('color', textColor(d.id));
+                    $('.background').css('display', "block");
+                    $('.background').css('background-color', color(d.id));
+
+                });
+
+                $('.arrow').click(function() {
+                    if (articleArray.length > 4) {
+                        randomArticles = []
+                        makeArticle();
+                        $("#title4").css("display", "block");
+                        $("#title3").css("display", "block");
+                        $("#title2").css("display", "block");
+                        $("#tm4").css("display", "block");
+                        $("#tm3").css("display", "block");
+                        $("#tm2").css("display", "block");
+                        $("#im4").css("display", "block");
+                        $("#im3").css("display", "block");
+                        $("#im2").css("display", "block");
+
+                    }
+                })
+
+            });
+            //ダブルクリック判定_____________________________________________________________________________QQQ
+
+
+
+
+            //.listのdisplayがblockならnoneにする
+            $(".d3").click(function(d) {
+                $(function() {
+                    var dcx = (window.innerWidth / 2);
+                var dcy = (window.innerHeight);
+                    var listCss = $('.list').css('display');
+                    if (listCss == "block") {
+
+
+                        $(".list").css("display", "none");
+
+                        $(".list").css('opacity', '0');
+                        $(".list").css('transform', 'translate(-50%, 20px)');
+
+                        //                        $(".list").css("display", "none");
+
+                        svg.transition()
+                            .duration(750)
+                            .call(zoom.transform, d3.zoomIdentity
+                                .translate(dcx, dcy / 2) //一旦中央に
+                                .scale(1) //とりあえず4倍でZoomIn
+                                .translate(-nodex, -nodey));;
+
+
+                        dbl = false;
+                        console.log(dbl)
+                        $("#title4").css("display", "block");
+                        $("#title3").css("display", "block");
+                        $("#title2").css("display", "block");
+                        $("#tm4").css("display", "block");
+                        $("#tm3").css("display", "block");
+                        $("#tm2").css("display", "block");
+                        $("#im4").css("display", "block");
+                        $("#im3").css("display", "block");
+                        $("#im2").css("display", "block");
+                        randomArticles = []
+                        articleArray = []
+                        console.log("randomは" + randomArticles)
+                    }
+                });
+            });
+
+        });
+        //jsonファイル読み込みin D3--------------------------------------------------------------------------------------
+
+        function dragstarted(d) {
+            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(d) {
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        }
+
+        function dragended(d) {
+            if (!d3.event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+
+        //            //json読み込み
+        //            $.get("colonia13.json", function(data) {
+        //                var colonia = $.parseJSON(data); 
+        //                console.log("うんこ")
+        //            });
+    </script>
+
+
+    <!--
+    <div class="background">
+
+    </div>
+-->
+    <div class="list">
+        <div class="article" id="atl1">
+            <img class="thamneil" id="im1" src="imgs/img1.png" alt="">
+            <div class="text" id="txt1">
+                <p class="time" id="tm1"></p>
+                <div class="marker">
+                    <p class="title" id="title1"></p>
+                </div>
+            </div>
+        </div>
+        <svg class="line" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 748.96 1.5" class="SvgFrame">
+            <line class="cls-1" 　preserveAspectRatio="none" y1="0.75" x2="748.96" y2="0.75" style="stroke:rgb(128,128,128);stroke-width:1.5" />
+        </svg>
+
+
+        <div class="article" id="atl2">
+            <img class="thamneil" id="im2" src="imgs/img2.png" alt="">
+            <div class="text" id="txt2">
+                <p class="time" id="tm2"></p>
+                <div class="marker">
+                    <p class="title" id="title2"></p>
+                </div>
+            </div>
+        </div>
+        <svg class="line" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 748.96 1.5" class="SvgFrame">
+            <line class="cls-1" 　preserveAspectRatio="none" y1="0.75" x2="748.96" y2="0.75" style="stroke:rgb(128,128,128);stroke-width:1.5" />
+        </svg>
+
+
+        <div class="article" id="atl3">
+            <img class="thamneil" id="im3" src="imgs/img3.jpg" alt="">
+            <div class="text" id="txt3">
+                <p class="time" id="tm3"></p>
+                <div class="marker">
+                    <p class="title" id="title3"></p>
+                </div>
+            </div>
+        </div>
+        <svg class="line" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 748.96 1.5" class="SvgFrame">
+            <line class="cls-1" 　preserveAspectRatio="none" y1="0.75" x2="748.96" y2="0.75" style="stroke:rgb(128,128,128);stroke-width:1.5" />
+        </svg>
+
+
+        <div class="article" id="atl4">
+            <img class="thamneil" id="im4" src="imgs/img4.jpg" alt="">
+            <div class="text" id="txt4">
+                <p class="time" id="tm4"></p>
+                <div class="marker">
+                    <p class="title" id="title4"></p>
+                </div>
+            </div>
+        </div>
+
+        <svg class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+            <defs>
+                <style>
+                    .cls-1 {
+                        fill: #2ce977;
+                    }
+
+                    .cls-2 {
+                        fill: none;
+                        stroke: #000;
+                        stroke-linecap: round;
+                        stroke-miterlimit: 10;
+                        stroke-width: 5.3px;
+                    }
+                </style>
+            </defs>
+            <title>アセット 11</title>
+            <g id="レイヤー_2" data-name="レイヤー 2">
+                <g id="レイヤー_3" data-name="レイヤー 3">
+                    <circle class="cls-1" cx="40" cy="40" r="40" />
+                    <path class="cls-2" d="M51.46,29a15.94,15.94,0,1,0,4.11,16" />
+                    <polygon points="55.11 22.18 59.06 36.44 44.73 32.73 55.11 22.18" />
+                </g>
+            </g>
+        </svg>
+    </div>
+
+
+
+</body>
+
+</html>

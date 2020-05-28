@@ -1,0 +1,241 @@
+body {
+    position: relative;
+    padding: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+.d3 {
+
+    /*    margin-left: 100;*/
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    
+    
+    
+    background-color: white;
+    animation: bg-color 20s infinite;
+    -webkit-animation: bg-color 14s infinite;
+}
+
+.nodes{
+/*    cursor: url(cursor_green.png), auto;*/
+}
+
+/*色の変化*/
+@-webkit-keyframes bg-color {
+     0% {
+        background-color: #191919;
+    }
+   
+    50% {
+        background-color: #e6e6e6;
+    }
+    100% {
+        background-color: #191919;
+    }
+}
+
+@keyframes bg-color {
+    0% {
+        background-color: #191919;
+    }
+
+    50% {
+        background-color: #e6e6e6;
+    }
+    100% {
+        background-color: #191919;
+    }
+}
+
+
+.img {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    top: 10px;
+    left: 10px;
+    background-color: aqua;
+}
+
+.node text {
+    font: 16px helvetica;
+}
+
+.background{
+    display: none;
+    position: absolute;
+    width: 100%;
+    height: 67%;
+    left: 50%;
+    top: 22%;
+    -webkit-transform: translate(-50%, 0);
+    transform: translate(-50%, 0);
+    line-height: 0;
+    z-index: 50;
+}
+
+.list {
+    display: none;
+  opacity : 0;
+  
+  transition: all 0.3s;
+    position: absolute;
+    width: 55%;
+    height: 67%;
+    background-color: #A3D1CB;
+    left: 50%;
+    top: 22%;
+    -webkit-transform: translate(-50%, 20px);
+    transform: translate(-50%, 20px);
+    line-height: 0;
+    z-index: 100;
+    border-radius: 15px;
+    border: 6px solid;
+    border-color: #15EB73;
+}
+
+.arrow{
+    position: absolute;
+    width: 5%;
+    top: 96.5%;
+    left: 47%;
+    transition:all 0.2s ease-out;
+}
+.arrow:hover{
+    transform: rotate(130deg);
+}
+
+
+
+/*記事div___________________________________________________________*/
+.article {
+    position: relative;
+    width: 100%;
+    height: 21.5%;
+    /*    background-color: coral;*/
+    /*    opacity: 0.5;*/
+}
+
+#atl1 {
+    margin-top: 1.1%;
+}
+
+.imageDiv {}
+
+.thamneil {
+    display: inline-block;
+    position: absolute;
+    width: 13%;
+    height: 90%;
+    top: 50%;
+    left: 5%;
+    -webkit-transform: translate(0, -50%);
+    transform: translate(0, -50%);
+    background-color: firebrick;
+/*    border-radius: 15px;*/
+    overflow: hidden;
+/*    border: 6px solid;*/
+    z-index: 200;
+    object-fit: cover;
+    box-sizing: border-box;
+    cursor: url(cursor_green.png), auto;
+}
+
+.text {
+    overflow: hidden;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    /*    background-color:aqua;*/
+
+    left: 50%;
+    -webkit-transform: translate(-50%, 0);
+    transform: translate(-50%, 0);
+    z-index: 300;
+    color: aliceblue;
+    font-family: "あくあフォント", "aquafont";
+    
+}
+
+.time {
+    position: absolute;
+    /*    background-color: crimson;*/
+    font-size: 110%;
+    margin-left: 21.5%;
+    margin-top: 0;
+    margin-bottom: 0;
+    top: 15%;
+    line-height: 1;
+    font-family: "あくあフォント", "aquafont";
+    color: black;
+    z-index: 300;
+}
+
+/*
+.marker p {
+  background: -webkit-linear-gradient(left, #ffe653 50%, transparent 50%) 100% 0% / 200% auto no-repeat;
+  background: linear-gradient(to right, #ffe653 50%, transparent 50%) 100% 0% / 200% auto no-repeat;
+  -webkit-transition: background-position .2s ease-out;
+  transition: background-position .2s ease-out;
+}
+.marker:hover p {
+  background-position: 0% 0%;
+}
+*/
+
+
+.title {
+    color: black;
+    
+    width: 74%;
+    height: 49%;
+    word-break: normal;
+    position: absolute;
+    display: inline-block;
+    text-decoration: none;
+/*    background-color: crimson;*/
+    font-size: 138%;
+    margin-left: 21.5%;
+    margin-top: 0;
+    margin-bottom: 0;
+    top: 40%;
+    line-height: 1.3;
+font-family: "Toppan Bunkyu Mincho","凸版文久明朝"; 
+/*    max-width: 76%;*/
+    overflow: scroll;
+    cursor: url(cursor_green.png), auto;
+    
+}
+
+.title::after {
+  content: "";
+  display: block;
+  width: 0;
+  transition: width 0.3s;
+  border-bottom: 2px solid #15EB73;
+}
+
+.title:hover::after {
+  width: 100%;
+}
+
+
+
+.line {
+    position: relative;
+    margin-top: 1.1%;
+    margin-bottom: 1.1%;
+    width: 95%;
+    left: 50%;
+    -webkit-transform: translate(-50%, 0);
+    transform: translate(-50%, 0);
+
+}
