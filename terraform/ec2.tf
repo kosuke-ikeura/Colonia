@@ -22,6 +22,7 @@ resource "aws_instance" "colonia" {
     tags = {
         Name = "colonia"
     }
+    subnet_id     = aws_subnet.colonia_public_0.id
     key_name      = aws_key_pair.auth.id
     vpc_security_group_ids = [aws_security_group.colonia-sg.id]
 }
